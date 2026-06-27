@@ -1,6 +1,8 @@
 # Validation Summary
 
 Date of package preparation: 2026-06-27.
+Public archive DOI: <https://doi.org/10.5281/zenodo.20960659>.
+Public GitHub repository: <https://github.com/carcorti/A226188>.
 
 Scope:
 
@@ -26,7 +28,7 @@ Production telemetry:
 - Tabular summary: `validation/run_manifest.tsv`.
 - Terms written: 67.
 - Predicate evaluations: 467.
-- Manifest elapsed time: `0.027685` s.
+- Manifest elapsed time: `0.027904` s.
 - Local wall time reported in the manuscript: about `0.03` s.
 - Local peak RSS reported in the manuscript: about `3184` KB.
 - Maximum MPFR precision used in the completed run: 256 bits.
@@ -53,9 +55,3 @@ Checksums:
 - Package checksums are listed in `validation/package_checksums.sha256`.
 - Generated-output checksums from the production workflow are listed in
   `outputs/a226188_checksums.sha256`.
-
-Release caveat:
-
-This is a raw GitHub-ready package. Final GitHub release metadata, Zenodo DOI,
-and the final manuscript update are intentionally deferred until publication.
-

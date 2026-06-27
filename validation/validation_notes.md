@@ -3,6 +3,9 @@
 The package records a finite computational certification of OEIS A226188 for
 `1 <= n <= 67`.
 
+Public repository: <https://github.com/carcorti/A226188>.
+Archived DOI: <https://doi.org/10.5281/zenodo.20960659>.
+
 The mathematical predicate certified for each row is
 
 ```text
@@ -32,4 +35,3 @@ hardware-normalized benchmarks.
 
 No claim is made beyond the certified `uint64_t` domain. The next index,
 `n = 68`, requires a wider integer type.
-

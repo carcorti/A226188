@@ -21,5 +21,5 @@
   "checksum_policy": "src/Makefile writes outputs/a226188_checksums.sha256 after generate through mktemp, chmod, sync -f, mv, and sync -f outputs; binary generate invalidates any stale checksum before writing outputs; data artifacts are written through mkstemp, fsync, rename, and directory fsync",
   "terms_written": 67,
   "predicate_evaluations": 467,
-  "elapsed_seconds": 0.029538
+  "elapsed_seconds": 0.027904
 }

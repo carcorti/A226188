@@ -22,15 +22,14 @@ implementation; `n = 68` requires a wider integer type.
 
 ## Repository status
 
-This is a pre-release GitHub publication package prepared before final Zenodo
-archival metadata are available. The final Zenodo DOI is intentionally not
-inserted yet. After the public GitHub repository is published and Zenodo has
-archived the GitHub release, update this README, `CITATION.cff`, and the paper
-metadata with the final DOI.
+This is the public GitHub/Zenodo publication package for the A226188
+computational extension.
 
-The accompanying manuscript draft is currently stored as
-`paper/A226188_v7.tex`. For a stable public release, the preferred public names
-are `paper/A226188.tex` and, if the PDF is included, `paper/A226188.pdf`.
+- GitHub repository: <https://github.com/carcorti/A226188>
+- Zenodo DOI: <https://doi.org/10.5281/zenodo.20960659>
+
+The accompanying manuscript is stored as `paper/A226188.tex`, with the
+corresponding compiled PDF in `paper/A226188.pdf`.
 
 ## Contents
 
@@ -53,9 +52,8 @@ are `paper/A226188.tex` and, if the PDF is included, `paper/A226188.pdf`.
 - `validation/validation_summary.md`: validation summary.
 - `validation/validation_notes.md`: validation notes.
 - `validation/package_checksums.sha256`: package-level checksums.
-- `paper/A226188_v7.tex`: pre-release manuscript draft used before insertion
-  of final GitHub and Zenodo metadata.
-- `paper/paper_notes.md`: manuscript notes.
+- `paper/A226188.tex`: final manuscript source.
+- `paper/A226188.pdf`: compiled manuscript PDF.
 
 ## Build and reproduce
 
@@ -118,7 +116,7 @@ known replay           1 <= n <= 27, pass
 new terms              28 <= n <= 67, certified
 terms written          67
 predicate evaluations  467
-elapsed time           0.027685 s
+elapsed time           0.027904 s
 maximum precision      256 bits
 ```
 
@@ -161,19 +159,16 @@ b-file.
 
 ## Paper
 
-The manuscript source is:
+The manuscript files are:
 
 ```text
-paper/A226188_v7.tex
+paper/A226188.tex
+paper/A226188.pdf
 ```
 
 It describes the definition, algorithm, interval-arithmetic certification,
 validation artifacts, finite domain limitation at `n = 67`, and data
 availability status.
-
-Because the GitHub repository and Zenodo DOI are finalization items, the paper
-currently uses planned repository/archive wording. Do not insert a final DOI
-until Zenodo has archived the intended GitHub release.
 
 ## License
 
@@ -181,17 +176,5 @@ This repository is released under the MIT License. See `LICENSE`.
 
 ## Citation
 
-Citation metadata are provided in `CITATION.cff`.
-
-Before the first public archival release, the citation metadata use the
-pre-release version string `0.1.0-pre` and omit the Zenodo DOI. After Zenodo
-archives the GitHub release, update `CITATION.cff` with the release version,
-release date, and DOI.
-
-## Release workflow note
-
-For GitHub/Zenodo publication, enable the repository in Zenodo after publishing
-the repository on GitHub but before creating the GitHub release to be archived.
-Then create the GitHub release, wait for Zenodo archival, retrieve the DOI, and
-make a metadata patch commit if the DOI must be propagated into `README.md`,
-`CITATION.cff`, and the paper.
+Citation metadata are provided in `CITATION.cff`; the archived release DOI is
+<https://doi.org/10.5281/zenodo.20960659>.

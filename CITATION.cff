@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-message: "If you use this computational package, please cite the repository and the accompanying manuscript. Add the Zenodo DOI after archival deposit."
+message: "If you use this computational package, please cite the repository and the accompanying manuscript."
 type: software
 title: "Computational Extension of OEIS Sequence A226188: Certified Inverse Harmonic Thresholds up to n=67"
 authors:
@@ -25,7 +25,10 @@ keywords:
   - computational number theory
 license: MIT
 repository-code: "https://github.com/carcorti/A226188"
-version: "0.1.0-pre"
+doi: "10.5281/zenodo.20960659"
+url: "https://doi.org/10.5281/zenodo.20960659"
+version: "1.0.0"
+date-released: "2026-06-27"
 preferred-citation:
   type: article
   title: "Computational Extension of OEIS Sequence A226188: Certified Inverse Harmonic Thresholds up to n=67"
@@ -34,4 +37,5 @@ preferred-citation:
       given-names: Carlo
       email: carlo.corti@outlook.com
   year: 2026
-  url: "https://github.com/carcorti/A226188"
+  doi: "10.5281/zenodo.20960659"
+  url: "https://doi.org/10.5281/zenodo.20960659"

@@ -330,7 +330,7 @@ The production manifest \path{outputs/a226188_manifest.json} reports:
 \text{new terms} & 28\leq n\leq 67,\ \text{certified},\\
 \text{terms written} & 67,\\
 \text{predicate evaluations} & 467,\\
-\text{elapsed time} & 0.027685\ \text{s},\\
+\text{elapsed time} & 0.027904\ \text{s},\\
 \text{maximum precision used} & 256\ \text{bits}.
 \end{array}
 \]
@@ -384,9 +384,9 @@ For each listed value \(k=a(n)\), the recorded certificate proves
 
 \begin{proof}[Computational proof]
 This is a finite computational certification conditioned on the recorded
-source, Makefile, manifest, and validation table.  The final public release
-tag or archival DOI is the publication mechanism that will fix the source,
-build recipe, and released data artifacts.
+source, Makefile, manifest, and validation table.  The public GitHub
+repository and Zenodo archive fix the source, build recipe, and released data
+artifacts.
 The program first recomputes \(a(n)\) for \(1\leq n\leq 27\) and compares the
 results with the local OEIS b-file values.  It then processes \(n=28,\ldots,67\)
 by certified bracketing and binary search.  Proposition~\ref{prop:certificate}
@@ -483,9 +483,8 @@ integers wider than \texttt{uint64\_t}.
 \section*{Data availability}
 
 The code, data files, result tables, manifest, and validation records are part
-of the project package intended for the planned repository and archive listed
-in the References; the public repository status and final DOI are finalization
-items handled outside this draft.  The essential local artifacts are
+of the public GitHub repository and Zenodo archive listed in the References.
+The essential local artifacts are
 \path{src/a226188.c}, \path{src/Makefile}, \path{data/b226188.txt},
 \path{outputs/a226188_terms.tsv}, \path{outputs/a226188_validation.tsv},
 \path{outputs/a226188_manifest.json}.  The local b-file contains 67 data rows
@@ -512,7 +511,7 @@ source, manifest, validation TSV, known-term replay, and
 sanitizer/static-analysis records, not on conversational assertions.
 
 Manuscript.  LLM assistance was used to draft and structure this manuscript
-from the project artifacts.  Numerical claims in the draft were
+from the project artifacts.  Numerical claims in the manuscript were
 checked against the local b-file, result tables, manifest, validation records,
 and final verification notes.
 
@@ -531,7 +530,7 @@ OEIS Foundation Inc.,
 The On-Line Encyclopedia of Integer Sequences,
 \url{https://oeis.org/A226188}.
 Author-checked OEIS URL; local project snapshot used as source material for
-this draft.
+this manuscript.
 
 \bibitem{oeisThresholdFamily}
 OEIS Foundation Inc.,
@@ -585,8 +584,8 @@ GNU MP development team,
 \bibitem{projectA226188}
 C.~Corti,
 \emph{Computational artifacts for OEIS A226188},
-planned GitHub repository \url{https://github.com/carcorti/A226188} and planned
-Zenodo archive.  The final DOI is to be inserted after archival deposit.
+GitHub repository \url{https://github.com/carcorti/A226188} and Zenodo archive,
+\url{https://doi.org/10.5281/zenodo.20960659}.
 
 \end{thebibliography}
 
