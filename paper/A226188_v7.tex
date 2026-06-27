@@ -1,0 +1,593 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{url}
+
+\geometry{margin=1in}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=blue,
+  urlcolor=blue,
+  pdftitle={Computational Extension of OEIS Sequence A226188},
+  pdfauthor={Carlo Corti}
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{Computational Extension of OEIS Sequence A226188:\\
+Certified Inverse Harmonic Thresholds up to \(n=67\)}
+
+\author{Carlo Corti\\
+Independent researcher\\
+\texttt{carlo.corti@outlook.com}}
+
+\date{June 26, 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+OEIS sequence A226188 is defined by
+\[
+  a(n)=\min\{k\geq 1: H_k>2n/3\},
+\]
+where \(H_k\) is the \(k\)-th harmonic number.  The local OEIS snapshot used for
+this computation contained 27 known terms.  This paper reports a certified
+extension through \(n=67\).  For every reported value \(k=a(n)\), the
+certificate is the strict threshold condition
+\[
+  H_{k-1}\leq 2n/3 < H_k.
+\]
+The computation uses the classical asymptotic approximation only to locate a
+small search neighborhood.  The final decisions are made by outward-rounded
+MPFR/GMP interval evaluations, using direct interval summation for small
+arguments and Euler--Maclaurin formulae for large arguments, followed by an
+expanding bracket and binary search.  The resulting \(64\)-bit implementation
+ends at
+\[
+  a(67)=14054172515346621401;
+\]
+the next index requires a wider integer type.  The new data also give a
+finite numerical consistency check, through the computed range, for the OEIS
+ratio behavior associated with the asymptotic limit
+\(a(n+1)/a(n)\to \exp(2/3)\).
+\end{abstract}
+
+\noindent\textbf{2020 Mathematics Subject Classification.}
+Primary 11Y55; Secondary 11B83, 11A25.
+
+\noindent\textbf{Key words and phrases.}
+OEIS, harmonic numbers, inverse harmonic thresholds, Euler--Maclaurin summation,
+interval arithmetic, computational number theory.
+
+\section{Introduction}
+
+The harmonic numbers
+\[
+  H_k = \sum_{j=1}^k \frac{1}{j}
+\]
+form a strictly increasing sequence.  OEIS A226188 asks for the first index at
+which this sum exceeds the arithmetic progression \(2n/3\):
+\[
+  a(n)=\min\{k\geq 1: H_k>2n/3\}.
+\]
+The entry previously listed the 27 values
+\[
+\begin{gathered}
+1,2,4,8,16,31,60,116,227,441,859,1674,3260,6349,\\
+12367,24088,46916,91380,177984,346666,675214,1315136,\\
+2561536,4989191,9717617,18927334,36865412.
+\end{gathered}
+\]
+It also records the asymptotic consequence
+\[
+  \frac{a(n+1)}{a(n)}\to \exp(2/3)=1.947734041054676\cdots,
+\]
+attributed in the local snapshot to a comment by Jean-François Alcover.
+The same local snapshot places A226188 in a small family of harmonic-threshold
+OEIS sequences, including A226187 for the threshold \(n/3\), A226189 for
+\(\sqrt n\), and A226190 for \(\log n\) \cite{oeisThresholdFamily}.
+
+The present computation extends the table by 40 further terms, from \(n=28\)
+through \(n=67\).  It is a finite computational certification, not a new proof
+of an infinite theorem about all later indices.  The asymptotic formula
+\[
+  a(n)\sim \exp(2n/3-\gamma)
+\]
+is used as a locator only.  No reported value is accepted because it is close
+to the asymptotic estimate; each value is accepted only after the two
+neighboring harmonic inequalities have been certified.
+
+The main contributions are:
+\begin{enumerate}
+\item reproduction of the 27 OEIS terms as a required gate;
+\item certified generation of \(a(n)\) for \(28\leq n\leq 67\);
+\item a reproducible C17/MPFR/GMP implementation using an expanding bracket,
+      binary search, and directed interval arithmetic;
+\item an explicit \(64\)-bit boundary: the current implementation supports
+      \(n\leq 67\), while \(n=68\) belongs to a wider-integer continuation.
+\end{enumerate}
+
+\section{Definition and Certification Predicate}
+
+\begin{definition}
+Let \(H_0=0\), and for \(k\geq 1\) let
+\[
+  H_k=\sum_{j=1}^k \frac{1}{j}.
+\]
+For \(n\geq 1\), let
+\[
+  a(n)=\min\{k\geq 1: H_k>2n/3\}.
+\]
+\end{definition}
+
+Because \(H_k\) is strictly increasing in \(k\), the following equivalent
+predicate is the natural certificate for a reported term.
+
+\begin{proposition}
+\label{prop:certificate}
+For \(n\geq 1\) and \(k\geq 1\), \(k=a(n)\) if and only if
+\[
+  H_{k-1}\leq \frac{2n}{3}<H_k.
+\]
+\end{proposition}
+
+\begin{proof}
+If \(k=a(n)\), then the defining strict inequality gives \(H_k>2n/3\), while
+minimality gives \(H_{k-1}\leq 2n/3\).  Conversely, if these two inequalities
+hold, then for every \(j<k\) one has \(H_j\leq H_{k-1}\leq 2n/3\), so \(k\) is
+the first index at which the harmonic sum exceeds the threshold.
+\end{proof}
+
+This strict/weak pair is important: the OEIS definition uses \(H_k>2n/3\), so
+the lower neighbor must be allowed to equal the threshold.
+
+\section{Analytic Evaluation Framework}
+
+Direct summation to \(k\) is infeasible at the largest values in this paper.
+The final term is about \(1.4\cdot 10^{19}\), so a certification method must
+evaluate \(H_k\) without summing all reciprocals.
+
+For large \(k\), the implementation uses the Euler--Maclaurin expansion and
+the standard first-neglected-term remainder control for the logarithmic-gamma
+and psi-function asymptotics; see DLMF Section~5.11, especially the
+asymptotic material in Section~5.11(ii), in \cite{dlmf}.  The
+Euler--Maclaurin intervals below are used only for \(k>10000\); smaller
+arguments are handled by direct interval summation.  Here
+\(\gamma=0.5772156649\cdots\) is the Euler--Mascheroni constant and \(\log\)
+denotes the natural logarithm.  In the present integer setting
+\(H_k=\psi(k+1)+\gamma\), where \(\psi\) is the digamma function, and the
+interval with four Bernoulli correction terms used for production comparisons
+is
+\[
+\begin{aligned}
+H_k ={}& \log k+\gamma+\frac{1}{2k}
+        -\frac{1}{12k^2}+\frac{1}{120k^4}
+        -\frac{1}{252k^6}+\frac{1}{240k^8}+R_4(k),
+\end{aligned}
+\]
+where \(R_4(k)\) denotes the remainder after the displayed correction terms and
+\[
+  |R_4(k)|\leq \frac{1}{132k^{10}}.
+\]
+This remainder estimate is the first-neglected-term bound from the cited DLMF
+asymptotic expansion.  If \(S_4(k)\) denotes the displayed sum without
+\(R_4(k)\), then EM4 is the outward-rounded interval
+\[
+  \left[S_4(k)-\frac{1}{132k^{10}},\,
+        S_4(k)+\frac{1}{132k^{10}}\right].
+\]
+As a higher-order check, the program also evaluates the interval with six
+Bernoulli correction terms
+\[
+\begin{aligned}
+H_k ={}& \log k+\gamma+\frac{1}{2k}
+        -\frac{1}{12k^2}+\frac{1}{120k^4}
+        -\frac{1}{252k^6}+\frac{1}{240k^8}\\
+       &-\frac{1}{132k^{10}}+\frac{691}{32760k^{12}}+R_6(k),
+\end{aligned}
+\]
+where \(R_6(k)\) is the corresponding remainder after the displayed terms and
+\[
+  |R_6(k)|\leq \frac{1}{12k^{14}}.
+\]
+This bound is used in the same way: if \(S_6(k)\) denotes the displayed sum
+without \(R_6(k)\), then EM6 is the outward-rounded interval
+\[
+  \left[S_6(k)-\frac{1}{12k^{14}},\,
+        S_6(k)+\frac{1}{12k^{14}}\right].
+\]
+
+All endpoint operations are rounded outward with MPFR \cite{mpfr}, linked
+against GMP \cite{gmp}.  Outward rounding means rounding lower endpoints toward
+\(-\infty\) and upper endpoints toward \(+\infty\).  Thus each comparison
+uses an interval \([L_k,U_k]\) known to contain \(H_k\).  Here
+\([L_k,U_k]\) is the active direct-summation, EM4, or EM6 interval at the
+current working precision.  The predicate
+\(H_k>2n/3\) is certified true only when \(3L_k>2n\), and certified false only
+when \(3U_k\leq 2n\).  Unresolved interval comparisons cause the program to
+increase precision or fail closed.
+
+\section{Sequence-Specific Structure and Cross-Checks}
+
+A226188 is not a rare-object search.  Every positive \(n\) has exactly one
+answer, and the difficulty is to identify the crossing point of a monotone
+analytic function on a rapidly growing integer scale.
+
+There is also a simple exact reduction on one residue class.  If
+\[
+  b(t)=\min\{k\geq 1:H_k>t\}
+\]
+is the inverse harmonic threshold at an integer argument \(t\), as in OEIS
+A002387, then
+\[
+  a(3m)=b(2m) \qquad (m\geq 1),
+\]
+because \(2(3m)/3=2m\).  Thus the rows with
+\(n=30,33,\ldots,66\) in the new range coincide with the integer-threshold
+values \(b(20),b(22),\ldots,b(44)\), respectively.  They are therefore
+external OEIS cross-check rows against A002387 rather than structurally new
+fractional-threshold cases.  OEIS A004080 records the corresponding
+weak-threshold integer variant \(H_k\geq t\), and the OEIS pages for these
+integer-threshold sequences cite the classical computation of Boas and Wrench
+on partial sums of the harmonic series \cite{oeisIntegerThresholds,boasWrench}.
+The remaining 27 new rows, where \(n\not\equiv0\pmod 3\), are the genuinely
+fractional-threshold cases for A226188 in this range.
+
+The sequence-specific computational feature is that the asymptotic estimate is
+extremely accurate near the relevant \(k\), but it is not itself a certificate.
+In the completed run, the seed
+\[
+  k_0=\left\lfloor\exp(2n/3-\gamma)\right\rfloor
+\]
+was often equal or adjacent to the final value.  Nevertheless, the algorithm
+does not use equality to the seed as an acceptance rule.  It expands a bracket
+until it has a certified false endpoint and a certified true endpoint, and then
+uses the monotonicity of \(H_k\) to binary-search the first true value.
+
+The certified ratios near the end of the new table are numerically consistent
+with the OEIS asymptotic comment.  For example,
+\[
+  \frac{a(67)}{a(66)}\approx 1.947734041055,
+\]
+and this quotient and \(\exp(2/3)\) both round to \(1.947734041055\) at
+twelve decimal places.  This is finite evidence in the certified range, while
+the limiting statement itself is supplied by the classical harmonic-number
+asymptotic expansion.
+
+\section{Algorithm and Implementation}
+
+The final implementation is the C17 source file \path{src/a226188.c}, built by
+\path{src/Makefile}.  It has two supported modes:
+\begin{itemize}
+\item \texttt{verify-known}, which recomputes and checks the 27 OEIS terms;
+\item \texttt{generate}, which performs the known-term replay and then writes
+      the certified range through \(n=67\).
+\end{itemize}
+
+For each \(n\), the algorithm is:
+\begin{enumerate}
+\item compute the untrusted locator \(k_0=\lfloor\exp(2n/3-\gamma)\rfloor\);
+\item start with radius \(16\), set the trial lower endpoint to
+      \(\max(1,k_0-r)-1\), and set the trial upper endpoint to \(k_0+r\);
+\item double the radius until the lower endpoint is certified false and the
+      upper endpoint certified true for \(H_k>2n/3\), checking unsigned
+      addition for overflow at each expansion and exiting without emitting a
+      term if such an overflow is detected;
+\item binary-search the resulting bracket while \(k_{\rm high}-k_{\rm low}>1\),
+      using the overflow-safe midpoint
+      \(k_{\rm low}+(k_{\rm high}-k_{\rm low})/2\);
+\item certify the final neighbor inequalities
+      \(H_{k-1}\leq 2n/3 < H_k\);
+\item repeat the final certificate with the higher-order EM6 interval at
+      increased precision.
+\end{enumerate}
+
+The loop invariant is that the lower endpoint is certified false and the upper
+endpoint is certified true.  Since \(H_k\) is strictly increasing, the
+invariant proves that the final upper endpoint is the least true value.  The
+bracket is finite, and each binary-search step strictly decreases
+\(k_{\rm high}-k_{\rm low}\), so the search terminates.  If an interval
+comparison is unresolved at 256 bits, the implementation retries at 384 and
+then 512 bits; if the comparison is still unresolved, it exits without emitting
+a term.  In the completed run no escalation was needed beyond 256 bits.
+
+For \(k\leq 10000\), the program uses directed MPFR summation, the direct-sum
+instance of outward interval rounding: lower
+accumulators are formed with downward rounding and upper accumulators with
+upward rounding, so that the final pair encloses the exact finite sum.  The
+threshold \(10000\) is a conservative implementation cutoff: direct summation
+is still inexpensive there, while Euler--Maclaurin evaluation is preferable on
+the much larger values occurring in the certified range.  For larger values,
+the program uses the Euler--Maclaurin interval described above.  The precision
+policy is \(256\), \(384\), and \(512\) MPFR bits; the completed run resolved
+all terms at 256 bits.  The manifest records MPFR version 4.2.1 and GMP
+version 6.3.0.
+
+\section{Certification and Reproducibility}
+
+The production manifest \path{outputs/a226188_manifest.json} reports:
+\[
+\begin{array}{ll}
+\text{range} & 1\leq n\leq 67,\\
+\text{known replay} & 1\leq n\leq 27,\ \text{pass},\\
+\text{new terms} & 28\leq n\leq 67,\ \text{certified},\\
+\text{terms written} & 67,\\
+\text{predicate evaluations} & 467,\\
+\text{elapsed time} & 0.027685\ \text{s},\\
+\text{maximum precision used} & 256\ \text{bits}.
+\end{array}
+\]
+A local final verification run also recorded a wall time of about \(0.03\) s and a
+peak resident set size of about \(3184\) KB.  The manifest timing is for the
+\texttt{generate} mode, which includes the known-term replay and generation
+through \(n=67\).  These timing and memory figures are local telemetry, not a
+hardware-normalized benchmark.  The current local verification environment is
+an x86-64 GNU/Linux system with an AMD Ryzen 9 7940HS CPU, 64 GB DDR5
+installed RAM, GCC 13.3.0, and the Makefile flags
+\texttt{-std=c17 -O2} with warning flags
+\texttt{-Wall}, \texttt{-Wextra}, \texttt{-Wshadow}, \texttt{-Wconversion},
+\texttt{-Wdouble-promotion}, \texttt{-Wformat=2}, and \texttt{-pedantic}.
+
+The validation table \path{outputs/a226188_validation.tsv} contains one
+certificate row per index.  Each row records the candidate \(k\), seed,
+bracket endpoints, MPFR precision, harmonic method, two comparison outcomes,
+positive margins for both neighboring inequalities, checker status, predicate
+evaluation count, elapsed time, and final status.  All 67 rows have status
+\texttt{CERTIFIED} and checker status \texttt{PASS}.  The smallest recorded
+margin for the lower-neighbor inequality is
+\[
+  2n/3-U_{k-1}=2.633584523432143\cdot 10^{-22}
+\]
+at \(n=67\), and the smallest recorded margin for the strict crossing
+inequality is
+\[
+  L_k-2n/3=6.228932742447755\cdot 10^{-21}
+\]
+at \(n=65\).  These margins are taken from the validation TSV and explain why
+the 256-bit interval comparisons were resolved in the completed run.
+
+The file \path{data/b226188.txt} is the project's canonical OEIS-ready local
+b-file; it contains 67 data rows and the final blank line required by the
+local workflow.  Release-level file-integrity records are maintained with the
+repository/archive package rather than printed in the paper.
+
+\section{Results}
+
+\begin{theorem}[Certified extension of A226188]
+\label{thm:main}
+Subject to the recorded source, manifest, and validation table described
+above, the values in Table~\ref{tab:newterms} are certified values of A226188
+for \(28\leq n\leq 67\).  Together with the reproduced OEIS terms for
+\(1\leq n\leq 27\), they give a certified table for \(1\leq n\leq 67\).
+For each listed value \(k=a(n)\), the recorded certificate proves
+\[
+  H_{k-1}\leq 2n/3 < H_k.
+\]
+\end{theorem}
+
+\begin{proof}[Computational proof]
+This is a finite computational certification conditioned on the recorded
+source, Makefile, manifest, and validation table.  The final public release
+tag or archival DOI is the publication mechanism that will fix the source,
+build recipe, and released data artifacts.
+The program first recomputes \(a(n)\) for \(1\leq n\leq 27\) and compares the
+results with the local OEIS b-file values.  It then processes \(n=28,\ldots,67\)
+by certified bracketing and binary search.  Proposition~\ref{prop:certificate}
+shows that the final two inequalities for a row are sufficient to identify the
+least crossing index.  The validation TSV records both inequalities and their
+positive margins for every \(n\), and the manifest records completion of the
+run.
+\end{proof}
+
+Given a printed pair \((n,k)\), the certificate for that individual row can be
+checked independently by evaluating \(H_{k-1}\) and \(H_k\) with any rigorous
+arbitrary-precision interval method and verifying the two inequalities in
+Proposition~\ref{prop:certificate}.  The source and output artifacts are used
+to reproduce the generation and the exact table, not as a substitute for the
+mathematical certificate.
+
+\begin{table}[htbp]
+\centering
+\caption{Certified terms of A226188 for \(28\leq n\leq 67\), extending the 27 previously known terms.}
+\label{tab:newterms}
+\begin{tabular}{r r r r}
+\toprule
+\(n\) & \(a(n)\) & \(n\) & \(a(n)\)\\
+\midrule
+28 & 71804019 & 48 & 44334502845080\\
+29 & 139855131 & 49 & 86351820384599\\
+30 & 272400600 & 50 & 168190380070122\\
+31 & 530563922 & 51 & 327590128640500\\
+32 & 1033397411 & 52 & 638058445066582\\
+33 & 2012783315 & 53 & 1242768153638596\\
+34 & 3920366580 & 54 & 2420581837980561\\
+35 & 7635831442 & 55 & 4714649644993433\\
+36 & 14872568831 & 56 & 9182883605200051\\
+37 & 28967808590 & 57 & 17885814992891026\\
+38 & 56421586886 & 58 & 34836810713659947\\
+39 & 109894245429 & 59 & 67852842108773716\\
+40 & 214044762737 & 60 & 132159290357566703\\
+41 & 416902270693 & 61 & 257411148671061652\\
+42 & 812014744422 & 62 & 501368456813612867\\
+43 & 1581588759549 & 63 & 976532410446924923\\
+44 & 3080514265923 & 64 & 1902025418020652442\\
+45 & 6000022499693 & 65 & 3704639653630074470\\
+46 & 11686448069747 & 66 & 7215652763216299614\\
+47 & 22762092724463 & 67 & 14054172515346621401\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{corollary}
+The local b-file \path{data/b226188.txt} extends the A226188 table to 67
+indices.  It contains the 27 previously known values followed by the 40 new
+certified terms in Table~\ref{tab:newterms}.
+\end{corollary}
+
+\section{Domain Limitations}
+
+The computation reported here is bounded by the integer domain of the final
+implementation.  The largest certified value is
+\[
+  a(67)=14054172515346621401,
+\]
+which fits in \texttt{uint64\_t}.  The manifest records \(n=67\) as the maximum
+supported index for this implementation family and records \(n=68\) as
+requiring a wider integer type.  This boundary is also visible directly from
+the harmonic threshold: an EM4 upper interval, evaluated with the same
+outward-rounded interval method used above, gives
+\[
+  H_{2^{64}-1}<44.938636<\frac{136}{3},
+\]
+so no \texttt{uint64\_t} value can satisfy the defining inequality for
+\(n=68\).  Continuing the sequence should therefore be treated as a new
+wider-integer computation, not as a simple extension of the same compiled
+artifact.
+
+The paper also does not claim an independent exhaustive reimplementation of the
+full non-hit search.  The validation artifacts certify the reported crossing
+values by interval arithmetic and replay the 27 known terms.  The finite
+extension is reproducible from the stated source and output artifacts, but it
+is not a proof of all future terms.
+
+\section{Conclusion}
+
+OEIS A226188 has been extended from 27 known terms to a certified table through
+\(n=67\).  The computation confirms every row by the defining inequalities
+\[
+  H_{a(n)-1}\leq 2n/3 < H_{a(n)}
+\]
+and records the result in an OEIS-ready local b-file.  The new values are
+finite certified data consistent, through the largest \(64\)-bit term, with the
+ratio behavior predicted by the harmonic-number asymptotic expansion.  Further
+extension begins at a genuine implementation boundary: \(n=68\) requires
+integers wider than \texttt{uint64\_t}.
+
+\section*{Data availability}
+
+The code, data files, result tables, manifest, and validation records are part
+of the project package intended for the planned repository and archive listed
+in the References; the public repository status and final DOI are finalization
+items handled outside this draft.  The essential local artifacts are
+\path{src/a226188.c}, \path{src/Makefile}, \path{data/b226188.txt},
+\path{outputs/a226188_terms.tsv}, \path{outputs/a226188_validation.tsv},
+\path{outputs/a226188_manifest.json}.  The local b-file contains 67 data rows
+and ends with the required final blank line.
+
+\section*{AI use disclosure}
+
+Large language models were used as research and drafting assistants during the
+A226188 workflow, including OpenAI Codex and external LLM-based review systems
+from the ChatGPT, Claude, DeepSeek, Gemini, Grok, Kimi, Qwen, and Z families.
+They are named at family level where exact model-version metadata were not
+consistently available in the local review artifacts.
+
+Mathematical analysis.  LLM assistance was used to organize the OEIS snapshot,
+identify the inverse-harmonic threshold structure, and check that the final
+predicate should be \(H_{k-1}\leq 2n/3 < H_k\).  The mathematical acceptance
+criterion in this paper is the explicit interval certificate recorded for each
+row, together with the author's direct derivation and human-reviewed proof of
+Proposition~\ref{prop:certificate}.
+
+Algorithm and code.  LLM assistance was used in the design and review loop for
+the C17 implementation using MPFR and GMP.  The final claims rely on the local
+source, manifest, validation TSV, known-term replay, and
+sanitizer/static-analysis records, not on conversational assertions.
+
+Manuscript.  LLM assistance was used to draft and structure this manuscript
+from the project artifacts.  Numerical claims in the draft were
+checked against the local b-file, result tables, manifest, validation records,
+and final verification notes.
+
+The author takes full scientific responsibility for the mathematical
+statements, algorithm, implementation, numerical results, validation
+boundaries, and conclusions of this paper.
+
+\begin{thebibliography}{9}
+\sloppy
+\raggedright
+
+\bibitem{oeisA226188}
+OEIS Foundation Inc.,
+\emph{Sequence A226188: Least positive integer \(k\) such that
+\(1+1/2+\cdots+1/k>2n/3\)},
+The On-Line Encyclopedia of Integer Sequences,
+\url{https://oeis.org/A226188}.
+Author-checked OEIS URL; local project snapshot used as source material for
+this draft.
+
+\bibitem{oeisThresholdFamily}
+OEIS Foundation Inc.,
+\emph{Related harmonic-threshold sequences A226187, A226189, and A226190},
+The On-Line Encyclopedia of Integer Sequences,
+\url{https://oeis.org/A226187},
+\url{https://oeis.org/A226189},
+\url{https://oeis.org/A226190}.
+These related entries are cross-referenced in the local A226188 snapshot; the
+OEIS URLs were checked by the author.
+
+\bibitem{oeisIntegerThresholds}
+OEIS Foundation Inc.,
+\emph{Sequences A002387 and A004080: integer-threshold inverse harmonic
+numbers},
+The On-Line Encyclopedia of Integer Sequences,
+\url{https://oeis.org/A002387},
+\url{https://oeis.org/A004080}.
+These OEIS sources provide the integer-threshold comparison used in the
+\(a(3m)=b(2m)\) observation; the OEIS URLs were checked by the author.
+
+\bibitem{boasWrench}
+R.~P. Boas, Jr. and J.~W. Wrench, Jr.,
+\emph{Partial sums of the harmonic series},
+American Mathematical Monthly 78 (1971), no.~8, 864--870.
+\url{https://doi.org/10.1080/00029890.1971.11992881}.
+
+\bibitem{dlmf}
+NIST Digital Library of Mathematical Functions,
+\emph{NIST Digital Library of Mathematical Functions},
+\url{https://dlmf.nist.gov/}, Release 1.2.7 of 2026-06-15.
+Release date confirmed by the DLMF update note
+\url{https://dlmf.nist.gov/about/news/#S1.I1.i1}.
+F.~W.~J. Olver, A.~B. Olde Daalhuis, D.~W. Lozier, B.~I. Schneider,
+R.~F. Boisvert, C.~W. Clark, B.~R. Miller, B.~V. Saunders, H.~S. Cohl,
+and M.~A. McClain, eds.
+Section 5.11 was used for the asymptotic expansion and remainder discipline.
+
+\bibitem{mpfr}
+L.~Fousse, G.~Hanrot, V.~Lefevre, P.~Pelissier, and P.~Zimmermann,
+\emph{MPFR: A multiple-precision binary floating-point library with correct
+rounding},
+ACM Transactions on Mathematical Software 33 (2007), no.~2, Article 13,
+15 pp. \url{https://doi.org/10.1145/1236463.1236468}.
+
+\bibitem{gmp}
+GNU MP development team,
+\emph{GNU MP: The GNU Multiple Precision Arithmetic Library, version 6.3.0},
+\url{https://gmplib.org/manual/}.
+
+\bibitem{projectA226188}
+C.~Corti,
+\emph{Computational artifacts for OEIS A226188},
+planned GitHub repository \url{https://github.com/carcorti/A226188} and planned
+Zenodo archive.  The final DOI is to be inserted after archival deposit.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this computational package, please cite the repository and the accompanying manuscript. Add the Zenodo DOI after archival deposit."
+type: software
+title: "Computational Extension of OEIS Sequence A226188: Certified Inverse Harmonic Thresholds up to n=67"
+authors:
+  - family-names: Corti
+    given-names: Carlo
+    email: carlo.corti@outlook.com
+abstract: >-
+  Computational artifacts for extending OEIS A226188, defined as the least
+  positive integer k such that H_k > 2n/3. The package certifies the table for
+  1 <= n <= 67; the first 27 terms reproduce the previously listed OEIS values,
+  and the terms 28 <= n <= 67 are new certified values. The implementation is a
+  finite C17 uint64_t computation using MPFR/GMP outward-rounded interval
+  arithmetic, certified bracketing, and binary search.
+keywords:
+  - OEIS
+  - A226188
+  - harmonic numbers
+  - inverse harmonic thresholds
+  - interval arithmetic
+  - Euler-Maclaurin summation
+  - MPFR
+  - GMP
+  - computational number theory
+license: MIT
+repository-code: "https://github.com/carcorti/A226188"
+version: "0.1.0-pre"
+preferred-citation:
+  type: article
+  title: "Computational Extension of OEIS Sequence A226188: Certified Inverse Harmonic Thresholds up to n=67"
+  authors:
+    - family-names: Corti
+      given-names: Carlo
+      email: carlo.corti@outlook.com
+  year: 2026
+  url: "https://github.com/carcorti/A226188"

@@ -1,0 +1,28 @@
+# C build products
+build/
+src/*.o
+src/a226188
+src/a226188.exe
+
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.bbl
+paper/*.blg
+
+# Editor and IDE files
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
